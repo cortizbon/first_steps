@@ -1,14 +1,19 @@
 import streamlit as st
 from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, precision_score, recall_score, PrecisionRecallDisplay, RocCurveDisplay
 from sklearn.model_selection import GridSearchCV, train_test_split
 import pandas as pd
 from sklearn.datasets import make_classification
 import matplotlib.pyplot as plt
+import seaborn as sns
+
+
 
 st.set_page_config(layout='wide')
 
-X, y = make_classification(100, n_features=5)
+st.title("'Arbol de decisión'")
+
+X, y = make_classification(100, n_features=5, random_state=1234)
 
 x_train, x_test, y_train, y_test = train_test_split(X, 
                                                     y, 
@@ -63,6 +68,23 @@ try:
 
         metrics = pd.Series(metrics, name='value')
         st.dataframe(metrics)
+
+    col5, col6, col7 = st.columns(3)
+
+    with col5:
+         #Precision recall curve
+        prec_recall_curve = PrecisionRecallDisplay.from_estimator(model, x_test, y_test)
+        st.pyplot(prec_recall_curve.figure_)
+    with col6:
+        # Auc Roc Curve
+        auc_roc_curve = RocCurveDisplay.from_estimator(model, x_test, y_test)
+        st.pyplot(auc_roc_curve.figure_)
+         
+    with col7:
+        fig, ax = plt.subplots(1, 1, figsize=(6, 3))
+        cm = confusion_matrix(y_test, y_pred)
+        sns.heatmap(cm, annot=True, ax=ax, annot_kws={'fontsize':16})
+        st.pyplot(fig)
 
 except :
     st.warning("Entrena el modelo para mostrar las métricas")
